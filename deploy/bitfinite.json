@@ -1,0 +1,17 @@
+{
+  "coin_name": "Bitfinite",
+  "coin_shortcut": "BFX",
+  "coin_label": "BitFinite",
+  "rpc_url": "http://127.0.0.1:19769",
+  "rpc_user": "__RPC_USER__",
+  "rpc_pass": "__RPC_PASS__",
+  "rpc_timeout": 25,
+  "parse": true,
+  "message_queue_binding": "tcp://127.0.0.1:28332",
+  "subversion": "",
+  "address_format": "cashaddr",
+  "mempool_workers": 4,
+  "mempool_sub_workers": 2,
+  "block_addresses_to_keep": 300,
+  "xpub_magic": 76067358
+}
