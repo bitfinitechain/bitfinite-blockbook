@@ -58,6 +58,19 @@ type data []byte
  */
 const CHARSET string = "fpzry9x8gq2tvdw0s3jn54khce6mua7l"
 
+// charsetRev maps a (lowercase) cashaddr character back to its 5-bit value using
+// the swapped CHARSET above, so decode is consistent with encode. Returns -1 for
+// characters not in the set. (The hardcoded CHARSET_REV table below is the stock
+// non-swapped one and is no longer used for BitFinite.)
+func charsetRev(c byte) int8 {
+	for i := 0; i < len(CHARSET); i++ {
+		if CHARSET[i] == c {
+			return int8(i)
+		}
+	}
+	return -1
+}
+
 /**
  * The cashaddr character set for decoding.
  */
@@ -315,13 +328,14 @@ func DecodeCashAddress(str string) (string, data, error) {
 	valuesSize := len(str) - 1 - prefixSize
 	values := make(data, valuesSize)
 	for i := 0; i < valuesSize; i++ {
-		c := byte(str[i+prefixSize+1])
-		// We have an invalid char in there.
-		if c > 127 || CHARSET_REV[c] == -1 {
+		c := LowerCase(byte(str[i+prefixSize+1]))
+		// derive the reverse from the swapped CHARSET so decode matches encode
+		rev := charsetRev(c)
+		if rev == -1 {
 			return "", data{}, errors.New("Invalid character")
 		}
 
-		values[i] = byte(CHARSET_REV[c])
+		values[i] = byte(rev)
 	}
 
 	// Verify the checksum.
