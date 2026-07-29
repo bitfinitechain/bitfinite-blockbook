@@ -1,0 +1,27 @@
+# BitFinite Blockbook — reproducible, self-healing deployment.
+# Replaces the ad-hoc `docker run` so the service always comes back:
+#  - restart: unless-stopped   → survives crashes AND host reboots (docker is enabled at boot)
+#  - stop_grace_period: 120s   → blockbook gets time to flush RocksDB on stop, instead of a
+#                                fast SIGKILL that can corrupt the index (→ won't restart / needs resync)
+#  - bind mounts               → config + 147M RocksDB index live on the host, survive recreation
+#  - network_mode: host        → blockbook binds 127.0.0.1:9130 (internal) / :9131 (public API),
+#                                fronted by nginx at blockbook.bitfinitechain.org
+# Recreate/upgrade anytime:  docker compose up -d
+services:
+  blockbook:
+    image: bfx-blockbook:latest
+    container_name: bfx-blockbook
+    restart: unless-stopped
+    network_mode: host
+    stop_grace_period: 120s
+    entrypoint: ["/opt/blockbook/blockbook"]
+    command:
+      - -blockchaincfg=/config/bitfinite.json
+      - -datadir=/data
+      - -sync
+      - -internal=127.0.0.1:9130
+      - -public=127.0.0.1:9131
+      - -logtostderr
+    volumes:
+      - ${BLOCKBOOK_HOME:-/srv/blockbook}/config:/config
+      - ${BLOCKBOOK_HOME:-/srv/blockbook}/data:/data
