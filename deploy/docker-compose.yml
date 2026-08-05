@@ -6,6 +6,8 @@
 #  - bind mounts               → config + 147M RocksDB index live on the host, survive recreation
 #  - network_mode: host        → blockbook binds 127.0.0.1:9130 (internal) / :9131 (public API),
 #                                fronted by nginx at blockbook.bitfinitechain.org
+# The host paths come from BLOCKBOOK_HOME (defaults to /srv/blockbook); set it in
+# deploy/.env or the environment to match wherever the service actually lives.
 # Recreate/upgrade anytime:  docker compose up -d
 services:
   blockbook:

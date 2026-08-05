@@ -1,0 +1,8 @@
+FROM ubuntu:24.04
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      libbz2-1.0 libsnappy1v5 liblz4-1 libzstd1 libzmq5 ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /opt/blockbook
+COPY blockbook /opt/blockbook/blockbook
+COPY static /opt/blockbook/static
+ENTRYPOINT ["/opt/blockbook/blockbook"]
