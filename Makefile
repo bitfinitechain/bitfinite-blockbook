@@ -9,6 +9,12 @@ TCMALLOC =
 PORTABLE = 0
 ARGS ?=
 GITCOMMIT ?= $(shell git describe --always --dirty 2>/dev/null)
+# VERSION is stamped into the binary and reported by /api/v2. The inner Makefile
+# (build/docker/bin/Makefile) defaults it to "devel" -- and because this file
+# forwarded GITCOMMIT but NOT VERSION, every build we ever shipped announced
+# itself publicly as "devel". Derived from upstream's own configs/environ.json so
+# it follows an upstream version bump instead of needing a manual edit.
+VERSION ?= $(shell sed -n 's/.*"version": "\([^"]*\)".*/\1/p' configs/environ.json | head -1)-bfx
 # Forward the build-time override variables into Docker for build/test tooling.
 # The prefix set is the single source of truth in build/bb-build-var-prefixes.txt,
 # shared with .github/actions/export-env-vars and build/tools/templates.go.
@@ -24,10 +30,10 @@ TARGETS=$(subst .json,, $(shell ls configs/coins))
 .PHONY: build build-debug test test-connectivity test-integration test-e2e test-all deb
 
 build: .bin-image
-	docker run -t --rm -e PACKAGER=$(PACKAGER) -e BB_BUILD_ENV=$(BB_BUILD_ENV) -e GITCOMMIT=$(GITCOMMIT) $(BB_RPC_ENV) -v "$(CURDIR):/src" -v "$(CURDIR)/build:/out" $(BIN_IMAGE) make build ARGS="$(ARGS)"
+	docker run -t --rm -e PACKAGER=$(PACKAGER) -e BB_BUILD_ENV=$(BB_BUILD_ENV) -e GITCOMMIT=$(GITCOMMIT) -e VERSION=$(VERSION) $(BB_RPC_ENV) -v "$(CURDIR):/src" -v "$(CURDIR)/build:/out" $(BIN_IMAGE) make build ARGS="$(ARGS)"
 
 build-debug: .bin-image
-	docker run -t --rm -e PACKAGER=$(PACKAGER) -e BB_BUILD_ENV=$(BB_BUILD_ENV) -e GITCOMMIT=$(GITCOMMIT) $(BB_RPC_ENV) -v "$(CURDIR):/src" -v "$(CURDIR)/build:/out" $(BIN_IMAGE) make build-debug ARGS="$(ARGS)"
+	docker run -t --rm -e PACKAGER=$(PACKAGER) -e BB_BUILD_ENV=$(BB_BUILD_ENV) -e GITCOMMIT=$(GITCOMMIT) -e VERSION=$(VERSION) $(BB_RPC_ENV) -v "$(CURDIR):/src" -v "$(CURDIR)/build:/out" $(BIN_IMAGE) make build-debug ARGS="$(ARGS)"
 
 test: .bin-image
 	docker run -t --rm -e PACKAGER=$(PACKAGER) -e BB_BUILD_ENV=$(BB_BUILD_ENV) -e GITCOMMIT=$(GITCOMMIT) $(BB_RPC_ENV) -v "$(CURDIR):/src" --network="host" $(BIN_IMAGE) make test ARGS="$(ARGS)"
